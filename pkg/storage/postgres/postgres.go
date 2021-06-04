@@ -4,6 +4,7 @@ import (
 	"GoNews/pkg/storage"
 	"context"
 	"log"
+	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -15,6 +16,8 @@ type Store struct {
 
 // Конструктор объекта хранилища.
 func New() *Store {
+	pwd := os.Getenv("pgpass")
+	connstr := "postgres://postgres:" + pwd + "@server.domain/database"
 	db, err := pgxpool.Connect(context.Background(), connstr)
 	if err != nil {
 		log.Fatal(err)
