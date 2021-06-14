@@ -3,6 +3,7 @@ package postgres
 import (
 	"GoNews/pkg/storage"
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -30,14 +31,15 @@ func (s *Store) Posts() ([]storage.Post, error) {
 	posts.content, 
 	posts.author_id,
 	author.name, 
-	posts.create_at 
+	posts.created_at 
 	FROM posts
 	JOIN authors
-	AT authors.name=posts.author_id;`)
+	AT authors.id=posts.author_id;`)
 
 	if err != nil {
 		return nil, err
 	}
+
 	var posts []storage.Post
 	for rows.Next() {
 		var p storage.Post
@@ -59,16 +61,25 @@ func (s *Store) Posts() ([]storage.Post, error) {
 }
 
 func (s *Store) AddPost(p storage.Post) error {
-	err := s.db.QueryRow(SELECT)
+	_, err := s.db.Exec(context.Background(), `
+	INSERT INTO posts (title, content, author_id, created_at) 
+	VALUES ($1,$2,$3);`, p.Title, p.Content, p.AuthorID, time.Now().Unix())
+	return err
+}
 
-	err = s.db.Exec("INSERT INTO posts ", p.Title, p.Content, p.AuthorID, p.CreatedAt)
-	return nil
+//UpdatePost - обновляет по id значения title, content и author_id
+func (s *Store) UpdatePost(p storage.Post) error {
+	_, err := s.db.Exec(context.Background(), `
+	UPDATE posts 
+	SET title=$2, content=$3, author_id=$4
+	WHERE id=$1;`, p.ID, p.Title, p.Content, p.AuthorID)
+	return err
 }
-func (s *Store) UpdatePost(storage.Post) error {
-	err := s.db.Exec("DELETE FROM posts WHERE ", p.Title, p.Content, p.AuthorID, p.CreatedAt)
-	return nil
-}
-func (s *Store) DeletePost(storage.Post) error {
-	err := s.db.Exec("DELETE FROM posts WHERE ", p.Title, p.Content, p.AuthorID, p.CreatedAt)
-	return nil
+
+//DeletePost - удаляет пост по id
+func (s *Store) DeletePost(p storage.Post) error {
+	_, err := s.db.Exec(context.Background(), `
+	DELETE FROM posts 
+	WHERE id=$1;`, p.ID)
+	return err
 }
