@@ -3,7 +3,6 @@ package mongo
 import (
 	"GoNews/pkg/storage"
 	"context"
-	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,15 +14,16 @@ type Store struct {
 }
 
 // Конструктор объекта хранилища.
-func New() *Store {
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017"))
+func New(connstr string) (*Store, error) {
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(connstr))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &Store{db: client}
+	return &Store{db: client}, nil
 }
 
 func (s *Store) Posts() ([]storage.Post, error) {
+	//err := s.db.Database() // <--
 	var posts []storage.Post
 	return posts, nil
 }
