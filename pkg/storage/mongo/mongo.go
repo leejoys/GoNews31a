@@ -11,9 +11,8 @@ import (
 
 // Хранилище данных.
 type Store struct {
-	c          *mongo.Client
-	db         string
-	collection string
+	c  *mongo.Client
+	db *mongo.Database
 }
 
 // Конструктор объекта хранилища.
@@ -29,13 +28,12 @@ func New(connstr string) (*Store, error) {
 		client.Disconnect(context.Background())
 		return nil, err
 	}
-	return &Store{c: client, db: "data",
-		collection: "posts"}, nil
+	return &Store{c: client, db: client.Database("data")}, nil
 }
 
 func (s *Store) Posts() ([]storage.Post, error) {
 
-	coll := s.c.Database(s.db).Collection(s.collection)
+	coll := s.db.Collection("posts")
 	ctx := context.Background()
 	filter := bson.D{}
 	cur, err := coll.Find(ctx, filter)
@@ -57,7 +55,7 @@ func (s *Store) Posts() ([]storage.Post, error) {
 }
 
 func (s *Store) AddPost(p storage.Post) error {
-	coll := s.c.Database(s.db).Collection(s.collection)
+	coll := s.db.Collection("posts")
 	_, err := coll.InsertOne(context.Background(), p)
 	if err != nil {
 		return err
@@ -65,9 +63,24 @@ func (s *Store) AddPost(p storage.Post) error {
 	return nil
 }
 
-func (s *Store) UpdatePost(storage.Post) error {
+func (s *Store) UpdatePost(p storage.Post) error {
+	coll := s.db.Collection("posts")
+	filter := bson.E{"id", p.ID}
+	update := bson.D{{"$set", bson.D{{"Title", p.Title},
+		{"Content", p.Content}, {"AuthorID", p.AuthorID}, {"PublishedAt", p.PublishedAt}}}}
+	_, err := coll.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
 	return nil
 }
-func (s *Store) DeletePost(storage.Post) error {
+
+func (s *Store) DeletePost(p storage.Post) error {
+	coll := s.db.Collection("posts")
+	filter := bson.D{{"id", p.ID}}
+	_, err := coll.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return err
+	}
 	return nil
 }
