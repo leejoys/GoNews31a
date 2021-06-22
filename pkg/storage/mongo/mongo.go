@@ -57,6 +57,7 @@ func (s *Store) Posts() ([]storage.Post, error) {
 }
 
 func (s *Store) AddPost(storage.Post) error {
+	coll := s.c.Database(s.db).Collection(s.collection)
 	return nil
 }
 func (s *Store) UpdatePost(storage.Post) error {
