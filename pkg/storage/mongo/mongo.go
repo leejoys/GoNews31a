@@ -56,10 +56,15 @@ func (s *Store) Posts() ([]storage.Post, error) {
 	return posts, nil
 }
 
-func (s *Store) AddPost(storage.Post) error {
+func (s *Store) AddPost(p storage.Post) error {
 	coll := s.c.Database(s.db).Collection(s.collection)
+	_, err := coll.InsertOne(context.Background(), p)
+	if err != nil {
+		return err
+	}
 	return nil
 }
+
 func (s *Store) UpdatePost(storage.Post) error {
 	return nil
 }
