@@ -20,6 +20,12 @@ func New(connstr string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = db.Ping(context.Background())
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
 	return &Store{db: db}, nil
 }
 
