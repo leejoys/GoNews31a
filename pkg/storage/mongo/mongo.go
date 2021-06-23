@@ -16,7 +16,7 @@ type Store struct {
 	db *mongo.Database
 }
 
-// Конструктор объекта хранилища.
+//New - Конструктор объекта хранилища.
 func New(name string, connstr string) (*Store, error) {
 	client, err := mongo.Connect(context.Background(),
 		options.Client().ApplyURI(connstr))
@@ -32,6 +32,12 @@ func New(name string, connstr string) (*Store, error) {
 	return &Store{c: client, db: client.Database(name)}, nil
 }
 
+//Close - освобождение ресурса
+func (s *Store) Close() {
+	s.c.Disconnect(context.Background())
+}
+
+//Posts - получение всех публикаций
 func (s *Store) Posts() ([]storage.Post, error) {
 
 	coll := s.db.Collection("posts")
@@ -55,6 +61,7 @@ func (s *Store) Posts() ([]storage.Post, error) {
 	return posts, nil
 }
 
+//AddPost - создание новой публикации
 func (s *Store) AddPost(p storage.Post) error {
 	p.CreatedAt = time.Now().Unix()
 	coll := s.db.Collection("posts")
@@ -65,6 +72,7 @@ func (s *Store) AddPost(p storage.Post) error {
 	return nil
 }
 
+//UpdatePost - обновление по id значения title, content, author_id и published_at
 func (s *Store) UpdatePost(p storage.Post) error {
 	coll := s.db.Collection("posts")
 	filter := bson.D{{Key: "id", Value: p.ID}}
@@ -80,6 +88,7 @@ func (s *Store) UpdatePost(p storage.Post) error {
 	return nil
 }
 
+//DeletePost - удаляет пост по id
 func (s *Store) DeletePost(p storage.Post) error {
 	coll := s.db.Collection("posts")
 	filter := bson.D{{Key: "id", Value: p.ID}}

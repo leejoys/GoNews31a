@@ -13,13 +13,14 @@ type Store struct {
 	db *pgxpool.Pool
 }
 
-// Конструктор объекта хранилища.
+//New - Конструктор объекта хранилища.
 func New(connstr string) (*Store, error) {
 
 	db, err := pgxpool.Connect(context.Background(), connstr)
 	if err != nil {
 		return nil, err
 	}
+	// проверка связи с БД
 	err = db.Ping(context.Background())
 	if err != nil {
 		db.Close()
@@ -29,6 +30,12 @@ func New(connstr string) (*Store, error) {
 	return &Store{db: db}, nil
 }
 
+//Close - освобождение ресурса
+func (s *Store) Close() {
+	s.db.Close()
+}
+
+//Posts - получение всех публикаций
 func (s *Store) Posts() ([]storage.Post, error) {
 	rows, err := s.db.Query(context.Background(),
 		`SELECT 
@@ -68,14 +75,16 @@ func (s *Store) Posts() ([]storage.Post, error) {
 	return posts, rows.Err()
 }
 
+//AddPost - создание новой публикации
 func (s *Store) AddPost(p storage.Post) error {
 	_, err := s.db.Exec(context.Background(), `
 	INSERT INTO posts (title, content, author_id, created_at, published_at) 
-	VALUES ($1,$2,$3,$4,$5);`, p.Title, p.Content, p.AuthorID, time.Now().Unix(), time.Now().Unix())
+	VALUES ($1,$2,$3,$4,$5);`, p.Title, p.Content,
+		p.AuthorID, time.Now().Unix(), time.Now().Unix())
 	return err
 }
 
-//UpdatePost - обновляет по id значения title, content и author_id
+//UpdatePost - обновление по id значения title, content, author_id и published_at
 func (s *Store) UpdatePost(p storage.Post) error {
 	_, err := s.db.Exec(context.Background(), `
 	UPDATE posts 

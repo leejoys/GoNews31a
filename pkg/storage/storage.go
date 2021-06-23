@@ -17,4 +17,5 @@ type Interface interface {
 	AddPost(Post) error     // создание новой публикации
 	UpdatePost(Post) error  // обновление публикации
 	DeletePost(Post) error  // удаление публикации по ID
+	Close()                 // освобождение ресурса
 }
