@@ -67,12 +67,12 @@ func (s *Store) AddPost(p storage.Post) error {
 
 func (s *Store) UpdatePost(p storage.Post) error {
 	coll := s.db.Collection("posts")
-	filter := bson.E{Key: "id", Value: p.ID}
+	filter := bson.D{{Key: "id", Value: p.ID}}
 	update := bson.D{{Key: "$set", Value: bson.D{
-		{Key: "Title", Value: p.Title},
-		{Key: "Content", Value: p.Content},
-		{Key: "AuthorID", Value: p.AuthorID},
-		{Key: "PublishedAt", Value: p.PublishedAt}}}}
+		{Key: "title", Value: p.Title},
+		{Key: "content", Value: p.Content},
+		{Key: "authorid", Value: p.AuthorID},
+		{Key: "publishedat", Value: p.PublishedAt}}}}
 	_, err := coll.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err
