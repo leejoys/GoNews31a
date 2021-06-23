@@ -3,6 +3,7 @@ package mongo
 import (
 	"GoNews/pkg/storage"
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +17,7 @@ type Store struct {
 }
 
 // Конструктор объекта хранилища.
-func New(connstr string) (*Store, error) {
+func New(name string, connstr string) (*Store, error) {
 	client, err := mongo.Connect(context.Background(),
 		options.Client().ApplyURI(connstr))
 	if err != nil {
@@ -28,7 +29,7 @@ func New(connstr string) (*Store, error) {
 		client.Disconnect(context.Background())
 		return nil, err
 	}
-	return &Store{c: client, db: client.Database("data")}, nil
+	return &Store{c: client, db: client.Database(name)}, nil
 }
 
 func (s *Store) Posts() ([]storage.Post, error) {
@@ -55,6 +56,7 @@ func (s *Store) Posts() ([]storage.Post, error) {
 }
 
 func (s *Store) AddPost(p storage.Post) error {
+	p.CreatedAt = time.Now().Unix()
 	coll := s.db.Collection("posts")
 	_, err := coll.InsertOne(context.Background(), p)
 	if err != nil {
@@ -65,9 +67,12 @@ func (s *Store) AddPost(p storage.Post) error {
 
 func (s *Store) UpdatePost(p storage.Post) error {
 	coll := s.db.Collection("posts")
-	filter := bson.E{"id", p.ID}
-	update := bson.D{{"$set", bson.D{{"Title", p.Title},
-		{"Content", p.Content}, {"AuthorID", p.AuthorID}, {"PublishedAt", p.PublishedAt}}}}
+	filter := bson.E{Key: "id", Value: p.ID}
+	update := bson.E{Key: "$set", Value: bson.D{
+		{Key: "Title", Value: p.Title},
+		{Key: "Content", Value: p.Content},
+		{Key: "AuthorID", Value: p.AuthorID},
+		{Key: "PublishedAt", Value: p.PublishedAt}}}
 	_, err := coll.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err
@@ -77,7 +82,7 @@ func (s *Store) UpdatePost(p storage.Post) error {
 
 func (s *Store) DeletePost(p storage.Post) error {
 	coll := s.db.Collection("posts")
-	filter := bson.D{{"id", p.ID}}
+	filter := bson.D{{Key: "id", Value: p.ID}}
 	_, err := coll.DeleteOne(context.Background(), filter)
 	if err != nil {
 		return err
