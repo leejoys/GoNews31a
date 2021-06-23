@@ -23,6 +23,8 @@ func (s *Store) UpdatePost(storage.Post) error {
 func (s *Store) DeletePost(storage.Post) error {
 	return nil
 }
+func (s *Store) Close() {
+}
 
 var posts = []storage.Post{
 	{
