@@ -1,4 +1,4 @@
-DROP TABLE IF EXIST posts, authors;
+DROP TABLE IF EXISTS posts, authors;
 
 CREATE TABLE authors(
 id SERIAL PRIMARY KEY,
@@ -15,5 +15,5 @@ published_at BIGINT NOT NULL
 );
 
 INSERT INTO authors (id, name) VALUES (0, 'Дмитрий');
-INSERT INTO posts (id, author_id, title, content, created_at) 
-VALUES (0, 0, 'Статья', 'Содержание статьи', 0);
+INSERT INTO posts (id, author_id, title, content, created_at, published_at) 
+VALUES (0, 0, 'Статья', 'Содержание статьи', 0, 0);

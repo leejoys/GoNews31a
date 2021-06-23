@@ -36,12 +36,12 @@ func (s *Store) Posts() ([]storage.Post, error) {
 	posts.title, 
 	posts.content, 
 	posts.author_id,
-	author.name, 
+	authors.name, 
 	posts.created_at, 
 	posts.published_at
 	FROM posts
 	JOIN authors
-	AT authors.id=posts.author_id;`)
+	ON authors.id=posts.author_id;`)
 
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (s *Store) Posts() ([]storage.Post, error) {
 func (s *Store) AddPost(p storage.Post) error {
 	_, err := s.db.Exec(context.Background(), `
 	INSERT INTO posts (title, content, author_id, created_at, published_at) 
-	VALUES ($1,$2,$3);`, p.Title, p.Content, p.AuthorID, time.Now().Unix(), time.Now().Unix())
+	VALUES ($1,$2,$3,$4,$5);`, p.Title, p.Content, p.AuthorID, time.Now().Unix(), time.Now().Unix())
 	return err
 }
 
